@@ -11,6 +11,7 @@ Download the loader and test file from https://github.com/DennisDean/. Unzip the
 
 (2) Prepare to load a file
 Prepare to load the EDF by clearing the console, clearing the workspace, and closing all figures.  Define the file to read. Type the following commands.
+         
          >> clc; clear; close all
          
          >> edfFn1 = 'test_generator.edf';
@@ -21,13 +22,15 @@ Prepare to load the EDF by clearing the console, clearing the workspace, and clo
 
 (3) Inspect the loaded variables
 Type the following commands to inspect the variables created by the load command.
+         
          >> header
         
          >> signalHeader
         
-        >> signalCell
+         >> signalCell
 Typing each of the variables results in the variable contents to be displayed on the screen as shown below.
-         >> header = 
+         
+          >> header = 
                           edf_ver: '0'
                        patient_id: 'test file'
                      local_rec_id: 'EDF generator'
@@ -75,11 +78,12 @@ Type the following command to create plotting variables.
 
 (5) Plot data
 Type the following command to plot the first 30 seconds of the first signal.
+         
          >> plot(t(1:numSamplesIn30Seconds), signal(1:numSamplesIn30Seconds));
          
          >> title('Test Signal')
          
          >> xlabel('Time (sec.)')
          
-        >> ylabel('Signal Amplitude')
+         >> ylabel('Signal Amplitude')
 
