@@ -3,6 +3,10 @@ function varargout = blockEdfLoad(varargin)
 % Function inputs an EDF file text string and returns the header,
 % header and each of the signals.
 %
+% Our EDF tools can be found at:
+%
+%                  http://sleep.partners.org/edf/
+%
 % The loader is designed to load the EDF file described in: 
 % 
 %    Bob Kemp, Alpo Värri, Agostinho C. Rosa, Kim D. Nielsen and John Gade 
@@ -10,14 +14,22 @@ function varargout = blockEdfLoad(varargin)
 %    Electroencephalography and Clinical Neurophysiology, 82 (1992): 
 %    391-393.
 %
-% An online view of the EDF format can be found: http://www.edfplus.info/
+% An online description of the EDF format can be found at:
+% http://www.edfplus.info/
 %
 % Requirements:    Self contained, no external references 
-% MATLAB Version:  Uses abstract functions, tested with MATLAB 7.14.0.739
+% MATLAB Version:  Requires R14 or newer, Tested with MATLAB 7.14.0.739
 %
 % Input (VARARGIN):
 %           edfFN : File text string 
 %    signalLabels : Cell array of signal labels to return (optional)
+%
+% Function Prototypes:
+%                                header = blockEdfLoad(edfFN)
+%                 header, signalHeader] = blockEdfLoad(edfFN)
+%    [header, signalHeader, signalCell] = blockEdfLoad(edfFN)
+%    [header, signalHeader, signalCell] = blockEdfLoad(edfFN, signalLabels)
+%    [header, signalHeader, signalCell] = blockEdfLoad(edfFN, signalLabels, epochs)
 %
 % Output (VARARGOUT):
 %          header : A structure containing variables for each header entry
@@ -25,7 +37,7 @@ function varargout = blockEdfLoad(varargin)
 %                   for each structure present in the data
 %      signalCell : A cell array that contains the data for each signal
 %
-% Structures:
+% Output Structures:
 %    header:
 %       edf_ver
 %       patient_id
@@ -49,7 +61,33 @@ function varargout = blockEdfLoad(varargin)
 %       samples_in_record
 %       reserve_2
 %
-% Version: 0.1.11
+% Examples:
+%
+%  Get EDF header information
+%
+%    edfFn3 = 'file.edf';
+%    header = blockEdfLoad(edfFn3);
+%
+%    edfFn3 = 'file.edf';
+%    [header signalHeader] = blockEdfLoad(edfFn3);
+%
+%
+%  Load Signals
+%
+%    edfFn3 = 'file.edf';
+%    [header signalHeader signalCell] = blockEdfLoad(edfFn3);
+%
+%    edfFn3 = 'file.edf';
+%    signalLabels = {'Pleth', 'EKG-R-EKG-L', 'Abdominal Resp'}; 
+%    [header signalHeader signalCell] = blockEdfLoad(edfFn3, signalLabels);
+%
+%    epochs = [1 2];  % Load first through second epoch
+%    signalLabels = {'Pleth', 'Abdominal Resp', 'EKG-R-EKG-L'}; 
+%    [header signalHeader signalCell] = ...
+%         blockEdfLoad(edfFn3, signalLabels, epochs);
+%
+%
+% Version: 0.1.22
 %
 % ---------------------------------------------
 % Dennis A. Dean, II, Ph.D
@@ -61,7 +99,7 @@ function varargout = blockEdfLoad(varargin)
 % Boston, MA  02149
 %
 % File created: October 23, 2012
-% Last updated: February 11, 2013 
+% Last updated: January 23, 2013 
 %    
 % Copyright © [2012] The Brigham and Women's Hospital, Inc. THE BRIGHAM AND 
 % WOMEN'S HOSPITAL, INC. AND ITS AGENTS RETAIN ALL RIGHTS TO THIS SOFTWARE 
@@ -75,21 +113,55 @@ function varargout = blockEdfLoad(varargin)
 %
 
 %------------------------------------------------------------ Process input
-signalLabels = {};
+
+
+% Opertion Flags
+RETURN_PHYSICAL_VALUES = 1;
+
+% Defaults for optional parameters
+signalLabels = {};      % Labels of signals to return
+epochs = [];            % Start and end epoch to return
+
+
+% Process input 
 if nargin == 1 
    edfFN = varargin{1};
    signalLabels = {};   
-elseif nargin == 2 & nargout == 3
+elseif nargin == 2 & nargout == 3 
    edfFN = varargin{1};
-   signalLabels = varargin{2};    
+   signalLabels = varargin{2};
+elseif nargin == 3 & nargout == 3 
+   edfFN = varargin{1};
+   signalLabels = varargin{2};  
+   epochs = varargin{3};
 else
+    % Echo supported function prototypes to console
     fprintf('header = blockEdfLoad(edfFN)\n');
     fprintf('[header, signalHeader] = blockEdfLoad(edfFN)\n');
     fprintf('[header, signalHeader, signalCell] = blockEdfLoad(edfFN)\n');
     fprintf('[header, signalHeader, signalCell] = blockEdfLoad(edfFN, signalLabels)\n');
+    fprintf('[header, signalHeader, signalCell] = blockEdfLoad(edfFN, signalLabels, epochs)\n');
+    
+    % Call MATLAB error function
     error('Function prototype not valid');
 end
-    
+
+%-------------------------------------------------------------- Input check
+% Check that first argument is a string
+if   ~ischar(edfFN)
+    msg = ('First argument is not a string.');
+    error(msg);
+end
+% Check that first argument is a string
+if  ~iscellstr(signalLabels)
+    msg = ('Second argument is not a valid text string.');
+    error(msg);
+end
+% Check that first argument is a string
+if  and(nargin ==3, length(epochs)~=2)
+    msg = ('Specify epochs = [Start_Epoch End_Epoch.');
+    error(msg);
+end
 
 %---------------------------------------------------  Load File Information
 % Load edf header to memory
@@ -108,8 +180,14 @@ end
 [filename, permission, machineformat, encoding] = fopen(fid);
 
 %-------------------------------------------------------------- Load Header
-edfHeaderSize = 256;
-[A count] = fread(fid, edfHeaderSize);
+try
+    % Load header information in one call
+    edfHeaderSize = 256;
+    [A count] = fread(fid, edfHeaderSize);
+catch exception
+    msg = 'File load error. Check available memory.';
+    error(msg);
+end
 
 %----------------------------------------------------- Process Header Block
 % Create array/cells to create struct with loop
@@ -135,12 +213,18 @@ for h = 1:length(headerVariables)
     header = setfield(header, headerVariables{h}, value);
 end
 
+% End Header Load section
 
 %------------------------------------------------------- Load Signal Header
 if nargout >= 2
-    % Load signal header into memory
-    edfSignalHeaderSize = header.num_header_bytes - headerSize;
-    [A count] = fread(fid, edfSignalHeaderSize);
+    try 
+        % Load signal header into memory in one load
+        edfSignalHeaderSize = header.num_header_bytes - headerSize;
+        [A count] = fread(fid, edfSignalHeaderSize);
+    catch exception
+        msg = 'File load error. Check available memory.';
+        error(msg);
+    end
 
     %------------------------------------------ Process Signal Header Block
     % Create arrau/cells to create struct with loop
@@ -150,7 +234,7 @@ if nargout >= 2
         'digital_max'; 'prefiltering'; 'samples_in_record'; ...
         'reserve_2' };
     signalHeaderVarConvF = {...
-        @strtrim; @strtrim; @strtrim; ...
+        @strtrim; @strtrim; @strtrim; ... 
         @str2num; @str2num; @str2num; ...
         @str2num; @strtrim; @str2num; ...
         @strtrim };
@@ -183,14 +267,75 @@ if nargout >= 2
             eval(structCmd);
         end
     end
-end
+end % End Signal Load Section
 
 %-------------------------------------------------------- Load Signal Block
 if nargout >=3
-    % Read digital values to the end of the record
-    [A count] = fread(fid, 'int16');
-
-    %----------------------------------------------------- Process Signal Block
+    % Read digital values to the end of the file
+    try
+        % Set default error mesage
+        errMsg = 'File load error. Check available memory.';
+        
+        % Load strategy is dependent on input
+        if nargin == 1
+            % Load entire file
+            [A count] = fread(fid, 'int16');
+        else 
+            % Get signal label information
+            edfSignalLabels = arrayfun(...
+                @(x)signalHeader(x).signal_labels, [1:header.num_signals],...
+                    'UniformOutput', false);
+            signalIndexes = arrayfun(...
+                @(x)find(strcmp(x,edfSignalLabels)), signalLabels,...
+                    'UniformOutput', false);
+            
+            % Check that specified signals are present
+            signalIndexesCheck = cellfun(...
+                @(x)~isempty(x), signalIndexes, 'UniformOutput', false);
+            signalIndexesCheck = int16(cell2mat(signalIndexesCheck));
+            if sum(signalIndexesCheck) == length(signalIndexes)
+                % Indices are specified
+                signalIndexes = cell2mat(signalIndexes);
+            else
+                % Couldn't find at least one signal label
+                errMsg = 'Could not identify signal label';
+                error(errMsg);
+            end
+                
+            edfSignalSizes = arrayfun(...
+                @(x)signalHeader(x).samples_in_record, [1:header.num_signals]);
+            edfRecordSize = sum(edfSignalSizes);
+            
+            % Identify memory locations to record
+            endLocs = cumsum(edfSignalSizes)';
+            startLocs = [1;endLocs(1:end-1)+1];
+            signalLocs = [];
+            for s = signalIndexes
+                signalLocs = [signalLocs; [startLocs(s):1:endLocs(s)]'];
+            end
+            sizeSignalLocs = length(signalLocs);
+            
+            % Load only required signals reduce memory calls
+            loadedSignalMemory = header.num_data_records*...
+                sum(edfSignalSizes(signalIndexes));
+            A = zeros(loadedSignalMemory,1);
+            for r = 1:header.num_data_records
+                [a count] = fread(fid, edfRecordSize, 'int16');
+                A([1+sizeSignalLocs*(r-1):sizeSignalLocs*r]) = a(signalLocs);
+            end
+            
+            % Reset global varaibles, which enable reshape functions to
+            % work correctly
+            header.num_signals = length(signalLabels);
+            signalHeader = signalHeader(signalIndexes);
+            num_signals = length(signalIndexes);
+        end
+        
+        %num_data_records
+    catch exception
+        error(errMsg);
+    end
+    %------------------------------------------------- Process Signal Block
     % Get values to reshape block
     num_data_records = header.num_data_records;
     getSignalSamplesF = @(x)signalHeader(x).samples_in_record;
@@ -219,17 +364,30 @@ if nargout >=3
         phy_min = signalHeader(s).physical_min;
         phy_max = signalHeader(s).physical_max;
 
-        % Convert to analog signal
-        value = double(signal) - (dig_max+dig_min)/2;
-        value = value./(dig_max-dig_min);
-        if phy_min >0
-            value = -value;
+        % Assign signal value
+        value = signal;
+        
+        % Convert to phyical units
+        if RETURN_PHYSICAL_VALUES == 1
+%             value = double(signal) - (dig_max+dig_min)/2;
+%             value = value./(dig_max-dig_min);
+%             if phy_min >0
+%                 value = -value;
+%             end  
+%             
+            value = (signal-dig_min)/(dig_max-dig_min);
+            value = value.*double(phy_max-phy_min)+phy_min; 
+        else
+            fprintf('Digital to Physical conversion is NOT performned: %s\n',...
+                edfFN);
         end
+    
         signalCell{s} = value;
     end
-end
 
-% Create return value
+end % End Signal Load Section
+
+%------------------------------------------------------ Create return value
 if nargout < 2
    varargout{1} = header;
 elseif nargout == 2
@@ -238,37 +396,33 @@ elseif nargout == 2
 elseif nargout == 3
     
    % Check if a reduce signal set is requested
-   if ~isempty(signalLabels)
-       % Get EDF labels
-       sigLabelsF = @(x)signalHeader(x).signal_labels;
-       labelIndexes = num2cell([1:length(signalHeader)]);
-       signal_labels = ...
-           cellfun(sigLabelsF, labelIndexes, 'UniformOutput', 0);
+   if ~isempty(epochs)
+       % Determine signal sampling rate      
+       signalSamples = arrayfun(...
+           @(x)signalHeader(x).samples_in_record, [1:num_signals]);
+       signalIndex = ones(num_signals, 1)*[epochs(1)-1 epochs(2)]*30;
+       samplesPerSecond = (signalSamples/header.data_record_duration)';
+       signalIndex = signalIndex .* [samplesPerSecond samplesPerSecond];
+       signalIndex(:,1) = signalIndex(:,1)+1;
        
-       
-       % Get index for each signal
-       for s = 1:length(signalLabels)
-            tIndex = find(strcmp(signalLabels{s}, signal_labels));
-            if isempty(tIndex)
-                % Could not finde index terming program
-                fprintf('Signal label not found (%s).', signalLabels{s});
-                error('Signal label not found');
-            end
-            index(s) = tIndex (1);
+       % Redefine signals to include specified epochs 
+       signalIndex = int64(signalIndex);
+       for s = 1:num_signals
+           signal = signalCell{s};
+           index = [signalIndex(s,1):signalIndex(s,2)];
+           signalCell{s} = signal(index);
        end
-       
-       % All labels found rewtie EDF variables
-       header.num_signals = length(signalLabels);
-       signalHeader = signalHeader(index);
-       getSignalCellF = @(x)signalCell{x};
-       signalCell = cellfun(getSignalCellF, num2cell(index),...
-           'UniformOutput', 0);;
    end
    
    % Create Output Structure
    varargout{1} = header;
    varargout{2} = signalHeader;
    varargout{3} = signalCell;
+end % End Return Value Function
+
+% Close file explicitly
+if fid > 0 
+    fclose(fid);
 end
 
-end
+end % End of blockEdfLoad function

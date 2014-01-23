@@ -19,24 +19,14 @@ function testBlockEdfLoad()
 %
 % Test Descriptions:
 %    Test 1: Load and plot generated file
-%    Test 2: Load and plot data from a sleep study
-%    Test 3: Compare traditional and block load with generated file
-%    Test 4: Compare traditional and block load with SHHS file
-%    Test 5: Compare multiple traditional and block loads with SHHS file
-%    Test 6: load and plot a collaborators file that has a 6 second record
-%    Test 7: load and plot DSM file that has a 6 second record
-%    Test 8: Incrementally load header, signalHeader and signalCell
-%    Test 9: Return information for selected signals
+%    Test 2: Incrementally load EDF components
+%    Test 3: Return selected signals
+%    Test 4: Return selected signals and epochs
 %
 % External Reference:
-%   edfRead.m
-%   www.mathworks.com/matlabcentral/fileexchange/31900-edfread
 %
 %   test_generator.edf (EDF Browswer Website)
 %   http://www.teuniz.net/edf_bdf_testfiles/index.html
-%
-%   201434.EDF
-%   https://sleepepi.partners.org/hybrid/
 %
 %
 % ---------------------------------------------
@@ -64,34 +54,29 @@ function testBlockEdfLoad()
 
 % Test Files
 edfFn1 = 'test_generator.edf';    % Generated data file
-edfFn2 = '201434.EDF';            % Sleep 
-edfFn3 = 'AD201A.EDF';            % Collaborator File
-edfFn4 = '1020 sample EDF.edf';   % Division of Sleep Medicine File
+
 
 % Test flags
-RUN_TEST_1 = 0;  % Generated File: Open and plot first 30 seconds
-RUN_TEST_2 = 1;  % SHHS File: Open and plot first 30 seconds
-RUN_TEST_3 = 0;  % Generated File: Traditional vs. Block Load
-RUN_TEST_4 = 0;  % SHHS File: Traditional vs. Block Load
-RUN_TEST_5 = 0;  % SHHS File: Multiple Traditional vs. Block Loads
-RUN_TEST_6 = 0;  % Collaborator file: 6 second record size
-RUN_TEST_7 = 0;  % DSM file
-RUN_TEST_8 = 0;  % Incrementally load header, signalHeader and signalCell
-RUN_TEST_9 = 0;  % Incrementally load header, signalHeader and signalCell
-
-
-% Test parameters
-NUMBER_OF_LOADS = 10;
+RUN_TEST_1 = 1;  % Load and plot generated file
+RUN_TEST_2 = 1;  % Incrementally load EDF components
+RUN_TEST_3 = 1;  % Return selected signals
+RUN_TEST_4 = 1;  % Return selected signals and epochs
 
 % ------------------------------------------------------------------ Test 1
 % Test 1: Load and plot generated file
 if RUN_TEST_1 == 1
+    % Write test results to console
+    testID = 1;
+    testStr = 'Load and plot generated file';
+    fprintf('----------------------------------------------------------\n');  
+    fprintf('Test %.0f. %s\n\n', testID, testStr);
+    
+    % Echo Status to Console
+    fprintf('Load and plot generated file\n\n');    
+    
     % Open generated test file
     [header signalHeader signalCell] = blockEdfLoad(edfFn1);
 
-    % Write test results to console
-    fprintf('------------------------------- Test 1\n\n');
-    fprintf('Load and plot generated file\n\n');
     % Show file contents
     PrintEdfHeader(header);
     PrintEdfSignalHeader(header, signalHeader);
@@ -102,183 +87,66 @@ if RUN_TEST_1 == 1
     fig1_2 = PlotEdfSignalStart(header, signalHeader, signalCell, tmax);
 end
 
-
-% ------------------------------------------------------------------ Test 2
-% Test 2: Load and plot data from a sleep study
+%------------------------------------------------------------------- Test 2
+% Test 2: Incrementally load EDF components
 if RUN_TEST_2 == 1
-    % Open Sleep Heart Health Sutdy edf
-    [header signalHeader signalCell] = blockEdfLoad(edfFn2);
-
     % Write test results to console
-    fprintf('------------------------------- Test 2\n\n');
-    fprintf('Load and plot generated file\n\n');
+    testID = 2;
+    testStr = 'Incrementally load EDF components';
+    fprintf('----------------------------------------------------------\n');  
+    fprintf('Test %.0f. %s\n\n', testID, testStr);  
     
-    % Show file contents
-    PrintEdfHeader(header);
-    PrintEdfSignalHeader(header, signalHeader);
-    tmax = 30;
-
-    % Plot first 30 seconds
-    fprintf('\nPlotting first 30 seconds\n\n');
-    fig2_2 = PlotEdfSignalStart(header, signalHeader, signalCell, tmax);
-end
-
-% ------------------------------------------------------------------ Test 3
-% Test 3: Compare traditional and block load with generated file
-if RUN_TEST_3 == 1
-    % Traditional Load
-    fprintf('------------------------------- Test 3\n\n');
-    fprintf('File Load Test: %s\n', edfFn1);
-
-    % Traditional Load
-    tic
-    [hdr, record] = edfRead(edfFn1);
-    elapsed_time_1 = toc;
-
-    % Block EDF Load
-    tic
-    [header signalHeader signalCell] = blockEdfLoad(edfFn1);
-    elapsed_time_2 = toc;
-
-    % Write load times to console
-    fprintf('Traditional Load = %0.2f sec., Block Load = %0.2f sec., Load time ratio = %0.2f%%\n\n',...
-        elapsed_time_1, elapsed_time_2, elapsed_time_2/elapsed_time_1*100)
-end
-
-% ------------------------------------------------------------------ Test 4
-% Test 4: Compare traditional and block load with SHHS file
-if RUN_TEST_4 == 1
-    % Traditional Load
-    fprintf('------------------------------- Test 4\n\n');
-    fprintf('File Load Test: %s\n', edfFn2);
-
-    % Traditional Load
-    tic
-    [hdr, record] = edfRead(edfFn2);
-    elapsed_time_1 = toc;
-
-    % Block EDF Load
-    tic
-    [header signalHeader signalCell] = blockEdfLoad(edfFn2);
-    elapsed_time_2 = toc;
-
-    % Write load times to console
-    fprintf('Traditional Load = %0.2f sec., Block Load = %0.2f sec., Load time ratio = %0.2f%%\n\n',...
-        elapsed_time_1, elapsed_time_2, elapsed_time_2/elapsed_time_1*100)
-end
-
-% ------------------------------------------------------------------ Test 5
-% Test 5: Compare multiple traditional and block loads with SHHS file
-if RUN_TEST_5 == 1
-    % Traditional Load
-    fprintf('------------------------------- Test 5\n\n');
-    fprintf('Multiple File Load Test: %s\n', edfFn2);
-
-    % Traditional Load
-    for r = 1:NUMBER_OF_LOADS
-        tic
-        [hdr, record] = edfRead(edfFn2);
-        elapsed_time_1(r) = toc;
-    end
-
-    % Block EDF Load
-    for r = 1:NUMBER_OF_LOADS
-        tic
-        [header signalHeader signalCell] = blockEdfLoad(edfFn2);
-        elapsed_time_2(r) = toc;
-    end
-
-    % Write load times to console
-    t1avg = mean(elapsed_time_1);
-    t2avg = mean(elapsed_time_2);
-    t1std = std(elapsed_time_1);
-    t2std = std(elapsed_time_2);
-    t2_t1_ratio = t2avg/t1avg;
-    fprintf('Traditional Load = %0.2f (%0.2f) sec., Block Load = %0.2f (%0.2f) sec., Load time ratio = %0.2f%%\n\n',...
-        t1avg, t1std, t2avg, t2std, t2_t1_ratio);
-end
-
-%------------------------------------------------------------------- Test 6
-% Test 6: load and plot a collaborators file that has a 6 second record
-if RUN_TEST_6 == 1
-    % Test Collaborator's EDF file that doesn't has a record size > 1 sec
-    % Open generated test file
-    [header signalHeader signalCell] = blockEdfLoad(edfFn3);
-
-    % Write test results to console
-    fprintf('------------------------------- Test 1\n\n');
-    fprintf('Load and plot a collaborators file that has a 6 second record\n\n');
-    
-    % Show file contents
-    PrintEdfHeader(header);
-    PrintEdfSignalHeader(header, signalHeader);
-    tmax = 30;
-
-    % Plot First 30 Seconds
-    fprintf('\nPlotting first 30 seconds\n\n');
-    fig1_2 = PlotEdfSignalStart(header, signalHeader, signalCell, tmax);        
-end
-%------------------------------------------------------------------- Test 7
-% Test 7: load and plot of DSM generated EDF
-if RUN_TEST_7 == 1
-    % Test Collaborator's EDF file that doesn't has a record size > 1 sec
-    % Open generated test file
-    tic
-    [header signalHeader signalCell] = blockEdfLoad(edfFn4);
-    toc
-
-    % Write test results to console
-    fprintf('------------------------------- Test 7\n\n');
-    fprintf('Load and plot DSM file\n\n');
-    
-    % Show file contents
-    PrintEdfHeader(header);
-    PrintEdfSignalHeader(header, signalHeader);
-    tmax = 30;
-
-    % Plot First 30 Seconds
-    fprintf('\nPlotting first 30 seconds\n\n');
-    fig1_2 = PlotEdfSignalStart(header, signalHeader, signalCell, tmax);        
-end
-%------------------------------------------------------------------- Test 8
-% Test 8: Incrementally load EDF components
-if RUN_TEST_8 == 1
     % Load header, signalHeader and signalCell incrementally
     tic
-    header = blockEdfLoad(edfFn3);
+    header = blockEdfLoad(edfFn1);
     tHeader = toc;
     
     tic
-    [header signalHeader] = blockEdfLoad(edfFn3);
+    [header signalHeader] = blockEdfLoad(edfFn1);
     tSignalHeader = toc;
 
     tic
-    [header signalHeader signalCell] = blockEdfLoad(edfFn3);
+    [header signalHeader signalCell] = blockEdfLoad(edfFn1);
     tSignalCell = toc;
-    
-
-    % Write test results to console
-    fprintf('------------------------------- Test 8\n\n');
-    fprintf('Incrementally load EDF components\n\n');
-    
 
     % Plot First 30 Seconds
-    fprintf('\n(header, signalHeader, signalCell) = ');
-    fprintf('(%0.3f, %0.3f, %0.3f)\n\n', tHeader, tSignalHeader, tSignalCell); 
+    fprintf('\tTime to Load (header, signalHeader, signalCell) = ');
+    fprintf('(%0.3f, %0.3f, %0.3f) (sec)\n\n', tHeader, tSignalHeader, tSignalCell); 
 end
-%------------------------------------------------------------------- Test 9
-% Test 9: Return selected signals
-if RUN_TEST_9 == 1
+%------------------------------------------------------------------- Test 3
+% Test 3: Return selected signals
+if RUN_TEST_3 == 1
+    % Write test results to console
+    testID = 3;
+    testStr = 'Return selected signals';
+    fprintf('----------------------------------------------------------\n');  
+    fprintf('Test %.0f. %s\n\n', testID, testStr);  
     
     % Selected Signals
-    signalLabels = {'Pleth', 'EKG-R-EKG-L', 'Abdominal Resp'}; 
-
-    % Write test results to console
-    fprintf('------------------------------- Test 9\n\n');
-    fprintf('Load reduced data set \n\n');
+    signalLabels = {'C3', 'C4'}; 
     
     % Load header, signalHeader and signalCell incrementally
-    [header signalHeader signalCell] = blockEdfLoad(edfFn3, signalLabels);
+    [header signalHeader signalCell] = blockEdfLoad(edfFn1, signalLabels);
+    PrintEdfHeader(header);
+    PrintEdfSignalHeader(header, signalHeader);
+    length(signalCell);   
+end
+%------------------------------------------------------------------- Test 4
+% Test 4: Return selected signals and epochs
+if RUN_TEST_4 == 1
+    % Write test results to console
+    testID = 4;
+    testStr = 'Return selected signals and epochs';
+    fprintf('----------------------------------------------------------\n');  
+    fprintf('Test %.0f. %s\n\n', testID, testStr);  
+    
+    % Selected Signals
+    signalLabels = {'C3', 'C4'}; 
+    epochs = [10 20]; 
+    
+    % Load header, signalHeader and signalCell incrementally
+    [header signalHeader signalCell] = ...
+        blockEdfLoad(edfFn1, signalLabels, epochs);
     PrintEdfHeader(header);
     PrintEdfSignalHeader(header, signalHeader);
     length(signalCell);   
