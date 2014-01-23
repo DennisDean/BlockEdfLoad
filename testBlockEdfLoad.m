@@ -23,12 +23,6 @@ function testBlockEdfLoad()
 %    Test 3: Return selected signals
 %    Test 4: Return selected signals and epochs
 %
-% External Reference:
-%
-%   test_generator.edf (EDF Browswer Website)
-%   http://www.teuniz.net/edf_bdf_testfiles/index.html
-%
-%
 % ---------------------------------------------
 % Dennis A. Dean, II, Ph.D
 %
@@ -39,7 +33,7 @@ function testBlockEdfLoad()
 % Boston, MA  02149
 %
 % File created: October 23, 2012
-% Last update:  January 6, 2013 
+% Last update:  January 23, 2013 
 %    
 % Copyright © [2013] The Brigham and Women's Hospital, Inc. THE BRIGHAM AND 
 % WOMEN'S HOSPITAL, INC. AND ITS AGENTS RETAIN ALL RIGHTS TO THIS SOFTWARE 
@@ -53,7 +47,7 @@ function testBlockEdfLoad()
 %
 
 % Test Files
-edfFn1 = 'test_generator.edf';    % Generated data file
+edfFn1 = '201434_deidentified.EDF';    % Generated data file
 
 
 % Test flags
@@ -123,7 +117,7 @@ if RUN_TEST_3 == 1
     fprintf('Test %.0f. %s\n\n', testID, testStr);  
     
     % Selected Signals
-    signalLabels = {'C3', 'C4'}; 
+    signalLabels = {'EEG(sec)', 'ECG'}; 
     
     % Load header, signalHeader and signalCell incrementally
     [header signalHeader signalCell] = blockEdfLoad(edfFn1, signalLabels);
@@ -141,7 +135,7 @@ if RUN_TEST_4 == 1
     fprintf('Test %.0f. %s\n\n', testID, testStr);  
     
     % Selected Signals
-    signalLabels = {'C3', 'C4'}; 
+    signalLabels = {'EEG(sec)', 'ECG'}; 
     epochs = [10 20]; 
     
     % Load header, signalHeader and signalCell incrementally
