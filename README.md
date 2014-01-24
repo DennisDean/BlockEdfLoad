@@ -32,15 +32,15 @@ Typing each of the variables results in the variable contents to be displayed on
 
           >> header =
                           edf_ver: '0'
-                       patient_id: 'test file'
-                     local_rec_id: 'EDF generator'
-              recording_startdate: '02.10.08'
-              recording_starttime: '14.27.00'
-                 num_header_bytes: 4352
+                       patient_id: ''
+                     local_rec_id: ''
+              recording_startdate: '01.01.95'
+              recording_starttime: '22.31.00'
+                 num_header_bytes: 3840
                         reserve_1: ''
-                 num_data_records: 900
+                 num_data_records: 37740
              data_record_duration: 1
-                      num_signals: 16
+                      num_signals: 14
 
         >> signalHeader
          signalHeader =
