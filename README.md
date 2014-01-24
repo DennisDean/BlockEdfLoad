@@ -11,39 +11,39 @@ Download the loader and test file from https://github.com/DennisDean/. Unzip the
 
 (2) Prepare to load a file
 Prepare to load the EDF by clearing the console, clearing the workspace, and closing all figures.  Define the file to read. Type the following commands.
-         
+
          >> clc; clear; close all
-         
-         >> edfFn1 = 'test_generator.edf';
-         
+
+         >> edfFn1 = '201434_deidentified.EDF';
+
          >> [header signalHeader signalCell] = blockEdfLoad(edfFn1);
-         
+
          >> header
 
 (3) Inspect the loaded variables
 Type the following commands to inspect the variables created by the load command.
-         
+
          >> header
-        
+
          >> signalHeader
-        
+
          >> signalCell
 Typing each of the variables results in the variable contents to be displayed on the screen as shown below.
-         
-          >> header = 
+
+          >> header =
                           edf_ver: '0'
-                       patient_id: 'test file'
-                     local_rec_id: 'EDF generator'
-              recording_startdate: '02.10.08'
-              recording_starttime: '14.27.00'
-                 num_header_bytes: 4352
+                       patient_id: ''
+                     local_rec_id: ''
+              recording_startdate: '01.01.95'
+              recording_starttime: '22.31.00'
+                 num_header_bytes: 3840
                         reserve_1: ''
-                 num_data_records: 900
+                 num_data_records: 37740
              data_record_duration: 1
-                      num_signals: 16
-        
+                      num_signals: 14
+
         >> signalHeader
-         signalHeader = 
+         signalHeader =
          1x16 struct array with fields:
              signal_labels
              tranducer_type
@@ -56,7 +56,7 @@ Typing each of the variables results in the variable contents to be displayed on
              samples_in_record
              reserve_2
          >> signalCell
-                  signalCell = 
+                  signalCell =
                     Columns 1 through 5
              [180000x1 double]    [90000x1 double]    [180000x1 double]    [180000x1 double]    [45000x1 double]
                     Columns 6 through 10
@@ -68,22 +68,23 @@ Typing each of the variables results in the variable contents to be displayed on
 
 (4) Create variables for plotting
 Type the following command to create plotting variables.
+
          >> signal = signalCell{1};
-         
+
          >> samplingRate = signalHeader(1).samples_in_record;
-         
+
          >> t = [0:length(signal)-1]/samplingRate';
-         
+
          >> numSamplesIn30Seconds = 30*samplingRate;
 
 (5) Plot data
 Type the following command to plot the first 30 seconds of the first signal.
-         
+
          >> plot(t(1:numSamplesIn30Seconds), signal(1:numSamplesIn30Seconds));
-         
+
          >> title('Test Signal')
-         
+
          >> xlabel('Time (sec.)')
-         
+
          >> ylabel('Signal Amplitude')
 
