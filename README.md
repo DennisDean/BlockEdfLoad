@@ -4,7 +4,7 @@ BlockEdfLoad
 A fast EDF loader
 
 Brief Tutorial
-The following tutorial demonstrates the commands required to load an EDF into MATLAB and to access a specific signal present in the EDF file. Additional examples for accessing the information available in an EDF can be found in the test file that is bundled with the loader script file. It is assumed that the reader is familiar with MATLAB. Readers unfamiliar with MATLAB are encouraged to complete a MATLAB tutorial.
+The following tutorial demonstrates the commands required to load an EDF into MATLAB and access a specific signal present in the EDF file. Additional examples for accessing the information available in an EDF can be found in the test file that is bundled with the loader script file. It is assumed that the reader is familiar with MATLAB. Readers unfamiliar with MATLAB are encouraged to complete a MATLAB tutorial.
 
 (1) Download loader and test file
 Download the loader and test file from https://github.com/DennisDean/. Unzip the download into a folder. Open MATLAB and change the directory to the folder with the loader and test file.
